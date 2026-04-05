@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: API Sucursales Restaurante
+  description: |
+    Especificación viva de los tres flujos de endpoints. La UI interactiva está en `/docs/api`.
+    Ramas sugeridas: `flow/sucursales`, `flow/catalogo`, `flow/pedidos`.
+  version: 0.1.0
+servers:
+  - url: /
+    description: Servidor local (php artisan serve)
+tags:
+  - name: Sucursales
+    description: Flujo `flow/sucursales` — ubicaciones, horarios, datos de sucursal.
+  - name: Catálogo
+    description: Flujo `flow/catalogo` — menú, categorías, precios, disponibilidad.
+  - name: Pedidos
+    description: Flujo `flow/pedidos` — órdenes, estados, pagos.
+
+paths:
+  /api/v1/sucursales/health:
+    get:
+      tags: [Sucursales]
+      summary: Health del flujo sucursales
+      operationId: sucursalesHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flow:
+                    type: string
+                    example: sucursales
+                  message:
+                    type: string
+
+  /api/v1/catalogo/health:
+    get:
+      tags: [Catálogo]
+      summary: Health del flujo catálogo
+      operationId: catalogoHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flow:
+                    type: string
+                    example: catalogo
+                  message:
+                    type: string
+
+  /api/v1/pedidos/health:
+    get:
+      tags: [Pedidos]
+      summary: Health del flujo pedidos
+      operationId: pedidosHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flow:
+                    type: string
+                    example: pedidos
+                  message:
+                    type: string
