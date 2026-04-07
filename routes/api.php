@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\ProductController;
 /*
 |--------------------------------------------------------------------------
 | API — tres flujos (ramas de trabajo: flow/sucursales, flow/catalogo, flow/pedidos)
@@ -16,12 +16,11 @@ Route::prefix('v1')->group(function () {
         ]));
     });
 
-    Route::prefix('catalogo')->group(function () {
-        Route::get('/health', fn () => response()->json([
-            'flow' => 'catalogo',
-            'message' => 'Placeholder: implementar en rama flow/catalogo',
-        ]));
-    });
+    
+
+      Route::prefix('catalogo')->middleware('auth:sanctum')->group(function () {
+    Route::apiResource('products', ProductController::class);
+     });
 
     Route::prefix('pedidos')->group(function () {
         Route::get('/health', fn () => response()->json([
