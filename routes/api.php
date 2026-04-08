@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PedidoController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+    Route::prefix('auth')->group(function () {
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/logout', [AuthController::class, 'logout']);
+        });
+    });
+
     Route::prefix('sucursales')->group(function () {
         Route::get('/health', fn () => response()->json([
             'flow' => 'sucursales',
@@ -30,10 +39,12 @@ Route::prefix('v1')->group(function () {
             'message' => 'Flujo pedidos operativo',
         ]));
 
-        Route::get('/', [PedidoController::class, 'index']);
-        Route::post('/', [PedidoController::class, 'store']);
-        Route::get('/{pedido}', [PedidoController::class, 'show']);
-        Route::patch('/{pedido}/estado', [PedidoController::class, 'updateEstado']);
-        Route::delete('/{pedido}', [PedidoController::class, 'destroy']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/', [PedidoController::class, 'index']);
+            Route::post('/', [PedidoController::class, 'store']);
+            Route::get('/{pedido}', [PedidoController::class, 'show']);
+            Route::patch('/{pedido}/estado', [PedidoController::class, 'updateEstado']);
+            Route::delete('/{pedido}', [PedidoController::class, 'destroy']);
+        });
     });
 });

@@ -14,6 +14,8 @@ class PedidoController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Pedido::class);
+
         $query = Pedido::query()->latest();
 
         if ($request->filled('estado')) {
@@ -41,6 +43,8 @@ class PedidoController extends Controller
 
     public function store(StorePedidoRequest $request): JsonResponse
     {
+        $this->authorize('create', Pedido::class);
+
         $payload = $request->validated();
         $total = collect($payload['items'])->sum(
             fn (array $item) => ((int) $item['cantidad']) * ((float) $item['precio_unitario'])
@@ -55,6 +59,7 @@ class PedidoController extends Controller
             'total' => $total,
             'items' => $payload['items'],
             'notas' => $payload['notas'] ?? null,
+            'created_by' => $request->user()?->id,
         ]);
 
         return (new PedidoResource($pedido))
@@ -64,11 +69,15 @@ class PedidoController extends Controller
 
     public function show(Pedido $pedido): PedidoResource
     {
+        $this->authorize('view', $pedido);
+
         return new PedidoResource($pedido);
     }
 
     public function updateEstado(UpdatePedidoEstadoRequest $request, Pedido $pedido): JsonResponse
     {
+        $this->authorize('updateEstado', $pedido);
+
         $nuevoEstado = $request->string('estado')->toString();
 
         if (! $this->canTransition($pedido->estado, $nuevoEstado)) {
@@ -86,6 +95,8 @@ class PedidoController extends Controller
 
     public function destroy(Pedido $pedido): JsonResponse
     {
+        $this->authorize('delete', $pedido);
+
         if ($pedido->estado === 'entregado') {
             return response()->json([
                 'message' => 'No se puede eliminar un pedido entregado.',
