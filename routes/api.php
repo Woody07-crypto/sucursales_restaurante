@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PedidoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,7 +27,13 @@ Route::prefix('v1')->group(function () {
     Route::prefix('pedidos')->group(function () {
         Route::get('/health', fn () => response()->json([
             'flow' => 'pedidos',
-            'message' => 'Placeholder: implementar en rama flow/pedidos',
+            'message' => 'Flujo pedidos operativo',
         ]));
+
+        Route::get('/', [PedidoController::class, 'index']);
+        Route::post('/', [PedidoController::class, 'store']);
+        Route::get('/{pedido}', [PedidoController::class, 'show']);
+        Route::patch('/{pedido}/estado', [PedidoController::class, 'updateEstado']);
+        Route::delete('/{pedido}', [PedidoController::class, 'destroy']);
     });
 });
