@@ -1,79 +1,207 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## API REST — Sucursales Restaurante
 
-## Sucursales restaurante
+Backend en **Laravel** para el proyecto de cátedra “Restaurante”. Incluye:
 
-API y documentación para trabajo en equipo (5 personas). Tras clonar el repo, copia `.env.example` a `.env`, ejecuta `composer setup` o los pasos habituales de Laravel.
+- **Autenticación** con **Laravel Sanctum** (Bearer token)
+- **Sucursales** (CRUD + KPIs + auditoría)
+- **Catálogo** (menú y CRUD de productos)
+- **Pedidos** (CRUD parcial + cambio de estado)
+- **Documentación interactiva** con **Swagger UI**
+- **Suite de pruebas** con **Pest**
 
-- **Documentación interactiva (Swagger UI):** [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (con `php artisan serve`).
-- **Especificación OpenAPI:** `public/openapi.yaml`.
-- **Matriz de pruebas:** [docs/MATRIZ_PRUEBAS.md](docs/MATRIZ_PRUEBAS.md).
+### Enlaces rápidos
 
-### Ramas de trabajo
+- **Swagger UI**: `http://localhost:8000/docs/api`
+- **OpenAPI**: `public/openapi.yaml`
+- **Matriz de pruebas**: `docs/MATRIZ_PRUEBAS.md`
+
+---
+
+## Requisitos
+
+- **PHP**: 8.3+
+- **Composer**: 2.x
+- **Base de datos**: MySQL 8 (recomendado) o compatible
+- (Opcional) **Node.js** 18+ si quieres compilar assets; para solo API no es necesario
+
+---
+
+## Levantamiento (desarrollo local)
+
+### 1) Clonar e instalar dependencias
+
+```bash
+composer install
+```
+
+### 2) Configurar variables de entorno
+
+```bash
+copy .env.example .env
+php artisan key:generate
+```
+
+Edita `.env` (por defecto el repo trae un ejemplo MySQL):
+
+- **DB_CONNECTION**: `mysql`
+- **DB_HOST**: `127.0.0.1`
+- **DB_PORT**: `3306`
+- **DB_DATABASE**: `restaurante`
+- **DB_USERNAME**: `root`
+- **DB_PASSWORD**: `1234`
+
+### 3) Migraciones y seed (datos base)
+
+```bash
+php artisan migrate
+```
+
+Este proyecto incluye seeders/factories para QA. Si quieres datos de ejemplo:
+
+```bash
+php artisan db:seed
+```
+
+### 4) Levantar servidor
+
+```bash
+php artisan serve
+```
+
+La API quedará disponible en:
+
+- `http://localhost:8000/api/v1/...`
+
+---
+
+## Documentación Swagger (UI)
+
+Con el servidor corriendo, abre:
+
+- `http://localhost:8000/docs/api`
+
+La especificación OpenAPI se sirve desde:
+
+- `http://localhost:8000/openapi.yaml`
+
+---
+
+## Autenticación (Sanctum)
+
+### Login
+
+`POST /api/v1/auth/login`
+
+Body ejemplo:
+
+```json
+{
+  "email": "gerente@example.test",
+  "password": "password"
+}
+```
+
+Respuesta (estándar del proyecto):
+
+```json
+{
+  "message": "Login exitoso",
+  "data": {
+    "token": "…",
+    "token_type": "Bearer",
+    "user": { "id": 1, "name": "…", "email": "…", "role": "gerente_global", "sucursal_id": null }
+  }
+}
+```
+
+En requests posteriores, enviar header:
+
+- `Authorization: Bearer <token>`
+- `Accept: application/json`
+
+### Usuario autenticado
+
+`GET /api/v1/auth/me`
+
+### Logout
+
+`POST /api/v1/auth/logout` (revoca el token actual)
+
+---
+
+## Endpoints principales (PDF final)
+
+### Catálogo (CRUD)
+
+- `GET /api/v1/catalogo/products`
+- `POST /api/v1/catalogo/products`
+- `PUT /api/v1/catalogo/products/{id}`
+- `DELETE /api/v1/catalogo/products/{id}`
+
+Además:
+
+- `GET /api/v1/catalogo/menu` (solo productos activos)
+
+### Sucursales
+
+- `GET /api/v1/sucursales`
+- `POST /api/v1/sucursales`
+- `PUT /api/v1/sucursales/{id}`
+- `DELETE /api/v1/sucursales/{id}`
+
+Además health checks:
+
+- `GET /api/v1/sucursales/health`
+- `GET /api/v1/catalogo/health`
+- `GET /api/v1/pedidos/health`
+
+### Pedidos
+
+- `GET /api/v1/pedidos`
+- `POST /api/v1/pedidos`
+- `GET /api/v1/pedidos/{pedido}`
+- `PATCH /api/v1/pedidos/{pedido}/estado`
+- `DELETE /api/v1/pedidos/{pedido}`
+
+#### Crear pedido (nota)
+
+El proyecto soporta **dos formatos** para `items[]`:
+
+- **Por producto (recomendado / matriz de pruebas)**: `product_id` + `cantidad`
+- **Por nombre/precio (según ejemplo del PDF)**: `nombre` + `precio_unitario` + `cantidad`
+
+---
+
+## Ejecutar pruebas
+
+La suite usa **SQLite in-memory** en testing (ver `phpunit.xml`), no necesitas MySQL para correr tests.
+
+```bash
+composer test
+```
+
+O directamente:
+
+```bash
+php artisan test
+```
+
+---
+
+## Scripts útiles
+
+En `composer.json` existen scripts:
+
+- `composer setup`: instala deps, crea `.env`, genera key y migra (incluye pasos npm si tienes Node)
+- `composer dev`: levanta server + queue + vite (si aplica)
+- `composer test`: corre tests
+
+---
+
+## Ramas (histórico del equipo)
 
 | Rama | Propósito |
 |------|-----------|
 | `main` | Integración estable |
-| `flow/sucursales` | Endpoints de sucursales (`/api/v1/sucursales/*`) |
-| `flow/catalogo` | Endpoints de catálogo/menú (`/api/v1/catalogo/*`) |
-| `flow/pedidos` | Endpoints de pedidos (`/api/v1/pedidos/*`) |
-| `qa/matriz-pruebas` | Evolución de la matriz y casos de QA |
-| `docs/api-interactiva` | Cambios en OpenAPI y la vista `/docs/api` |
+| `qa/matriz-pruebas` | QA + alineación con matriz y PDF |
 
-Publicar el remoto en GitHub como **repositorio público** y añadir colaboradores en *Settings → Collaborators* (o en el equipo de la organización).
-
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
