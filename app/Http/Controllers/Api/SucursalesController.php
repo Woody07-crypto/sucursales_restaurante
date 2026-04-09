@@ -34,7 +34,7 @@ class SucursalesController extends Controller
             $query->whereKey($user->sucursal_id);
         }
 
-        return response()->json($query->get());
+        return $this->respond($query->get(), 'Listado de sucursales');
     }
 
     public function show(Request $request, int $id): JsonResponse
@@ -54,7 +54,7 @@ class SucursalesController extends Controller
             'productos_activos' => $sucursal->products()->where('activo', true)->count(),
         ];
 
-        return response()->json(array_merge($sucursal->toArray(), ['kpis' => $kpis]));
+        return $this->respond(array_merge($sucursal->toArray(), ['kpis' => $kpis]), 'Detalle de sucursal');
     }
 
     public function store(StoreSucursalRequest $request): JsonResponse
@@ -65,13 +65,13 @@ class SucursalesController extends Controller
         }
 
         if (Sucursal::query()->where('nombre', $request->validated('nombre'))->exists()) {
-            return response()->json(['message' => 'Conflicto: ya existe una sucursal con ese nombre'], 409);
+            return $this->respond(null, 'Conflicto: ya existe una sucursal con ese nombre', 409);
         }
 
         $data = $request->validated();
         $sucursal = Sucursal::query()->create($data);
 
-        return response()->json($sucursal, 201);
+        return $this->respond($sucursal, 'Sucursal creada', 201);
     }
 
     public function update(UpdateSucursalRequest $request, int $id): JsonResponse
@@ -104,7 +104,7 @@ class SucursalesController extends Controller
             'action' => 'sucursal.updated',
         ]);
 
-        return response()->json($sucursal);
+        return $this->respond($sucursal, 'Sucursal actualizada');
     }
 
     public function destroy(Request $request, int $id): JsonResponse
@@ -128,9 +128,7 @@ class SucursalesController extends Controller
         }
 
         if ($sucursal->activePedidos()->exists()) {
-            return response()->json([
-                'message' => 'No se puede eliminar la sucursal: existen pedidos activos',
-            ], 409);
+            return $this->respond(null, 'No se puede eliminar la sucursal: existen pedidos activos', 409);
         }
 
         $sucursal->delete();
@@ -142,10 +140,7 @@ class SucursalesController extends Controller
             'action' => 'sucursal.soft_deleted',
         ]);
 
-        return response()->json([
-            'message' => 'Sucursal eliminada (baja lógica)',
-            'id' => $sucursal->id,
-        ], 200);
+        return $this->respond(['id' => $sucursal->id], 'Sucursal eliminada (baja lógica)', 200);
     }
 
     private function requireSucursalesReader(Request $request): User

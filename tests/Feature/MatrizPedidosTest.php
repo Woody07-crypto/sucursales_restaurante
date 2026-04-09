@@ -25,7 +25,7 @@ test('MAT-PED-002 crear pedido 201', function () {
         'cliente_nombre' => 'Cliente QA',
     ], apiBearer($gg))
         ->assertCreated()
-        ->assertJsonPath('estado', 'pendiente');
+        ->assertJsonPath('data.estado', 'pendiente');
 
     expect(Pedido::query()->count())->toBe(1);
 });
