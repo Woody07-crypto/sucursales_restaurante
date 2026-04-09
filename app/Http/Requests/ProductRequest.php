@@ -1,20 +1,26 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Requests;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class ProductResource extends JsonResource
+class ProductRequest extends FormRequest
 {
-    public function toArray(Request $request): array
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
     {
         return [
-            'id'         => $this->id,
-            'nombre'     => $this->nombre,
-            'precio'     => $this->precio,
-            'sucursal_id'=> $this->sucursal_id,
-            'created_at' => $this->created_at,
+            'nombre' => ['required', 'string', 'max:255'],
+            'precio' => ['required', 'numeric', 'min:0'],
+            'sucursal_id' => ['required', 'integer', Rule::exists('sucursales', 'id')],
         ];
     }
 }

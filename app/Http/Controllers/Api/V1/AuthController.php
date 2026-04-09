@@ -1,4 +1,5 @@
 <?php
+
 /**
  @OA\Tag(
  *     name="Auth",
@@ -21,20 +22,22 @@ class AuthController extends Controller
      *     path="/api/v1/auth/login",
      *     tags={"Auth"},
      *     summary="Login",
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"email","password"},
+     *
      *             @OA\Property(property="email", type="string"),
      *             @OA\Property(property="password", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="OK"),
      *     @OA\Response(response=401, description="Error")
      * )
      */
-
-
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -74,4 +77,3 @@ class AuthController extends Controller
         return response()->json(['message' => 'Sesión cerrada correctamente.']);
     }
 }
-

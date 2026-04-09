@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Product;
 
 class ProductController extends Controller
 {
@@ -16,6 +16,7 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         $product = Product::create($request->validated());
+
         return (new ProductResource($product))
             ->response()
             ->setStatusCode(201);
@@ -24,20 +25,22 @@ class ProductController extends Controller
     public function update(ProductRequest $request, $id)
     {
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Not found'], 404);
         }
         $product->update($request->validated());
+
         return new ProductResource($product);
     }
 
     public function destroy($id)
     {
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Not found'], 404);
         }
         $product->delete();
+
         return response()->noContent();
     }
 }

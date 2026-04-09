@@ -7,6 +7,7 @@ use App\Http\Requests\StorePedidoRequest;
 use App\Http\Requests\UpdatePedidoEstadoRequest;
 use App\Http\Resources\PedidoResource;
 use App\Models\Pedido;
+use App\Models\Sucursal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -50,11 +51,14 @@ class PedidoController extends Controller
             fn (array $item) => ((int) $item['cantidad']) * ((float) $item['precio_unitario'])
         );
 
+        $sucursalId = Sucursal::query()->where('nombre', $payload['sucursal'])->value('id');
+
         $pedido = Pedido::create([
             'codigo' => $this->generateCodigo(),
             'cliente_nombre' => $payload['cliente_nombre'] ?? null,
             'canal' => $payload['canal'],
             'sucursal' => $payload['sucursal'],
+            'sucursal_id' => $sucursalId,
             'estado' => 'pendiente',
             'total' => $total,
             'items' => $payload['items'],

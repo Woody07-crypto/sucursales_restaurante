@@ -11,6 +11,7 @@
  * @OA\Get(
  *     path="/api/test",
  *     summary="Endpoint de prueba",
+ *
  *     @OA\Response(
  *         response=200,
  *         description="OK"

@@ -2,13 +2,23 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Sucursal;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSucursalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $sucursal = $this->route('sucursal');
+
+        if (! $user instanceof User || ! $sucursal instanceof Sucursal) {
+            return false;
+        }
+
+        return $user->canAccessSucursal($sucursal);
     }
 
     /**
@@ -24,6 +34,7 @@ class UpdateSucursalRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'horario' => ['nullable', 'string', 'max:500'],
             'activa' => ['sometimes', 'boolean'],
+            'manager_id' => ['sometimes', 'nullable', 'integer', Rule::exists('users', 'id')],
         ];
     }
 }

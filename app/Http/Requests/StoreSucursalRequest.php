@@ -2,13 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSucursalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() instanceof User && $this->user()->isGerenteGeneral();
     }
 
     /**
@@ -24,6 +26,7 @@ class StoreSucursalRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'horario' => ['nullable', 'string', 'max:500'],
             'activa' => ['sometimes', 'boolean'],
+            'manager_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
         ];
     }
 }
