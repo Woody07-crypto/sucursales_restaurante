@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Sucursal;
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,30 +9,22 @@ class UpdateSucursalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
-        $sucursal = $this->route('sucursal');
-
-        if (! $user instanceof User || ! $sucursal instanceof Sucursal) {
-            return false;
-        }
-
-        return $user->canAccessSucursal($sucursal);
+        return true;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
+        $id = (int) $this->route('id');
+
         return [
-            'nombre' => ['sometimes', 'required', 'string', 'max:255'],
-            'direccion' => ['sometimes', 'required', 'string', 'max:500'],
-            'ciudad' => ['sometimes', 'required', 'string', 'max:120'],
-            'telefono' => ['sometimes', 'required', 'string', 'max:40'],
+            'nombre' => ['sometimes', 'string', 'max:255', Rule::unique('sucursales', 'nombre')->ignore($id)],
+            'direccion' => ['sometimes', 'string', 'max:500'],
+            'ciudad' => ['sometimes', 'string', 'max:120'],
+            'telefono' => ['sometimes', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:255'],
-            'horario' => ['nullable', 'string', 'max:500'],
+            'horario' => ['nullable', 'string', 'max:255'],
             'activa' => ['sometimes', 'boolean'],
-            'manager_id' => ['sometimes', 'nullable', 'integer', Rule::exists('users', 'id')],
+            'manager_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 }

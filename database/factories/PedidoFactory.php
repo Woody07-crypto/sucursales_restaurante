@@ -4,7 +4,9 @@ namespace Database\Factories;
 
 use App\Models\Pedido;
 use App\Models\Sucursal;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Pedido>
@@ -16,27 +18,48 @@ class PedidoFactory extends Factory
     public function definition(): array
     {
         return [
-            'codigo' => 'PED-FCT-'.fake()->unique()->numerify('######'),
-            'cliente_nombre' => fake()->optional()->name(),
-            'canal' => fake()->randomElement(['salon', 'delivery', 'take-away']),
-            'sucursal' => '',
             'sucursal_id' => Sucursal::factory(),
-            'estado' => Pedido::ESTADO_PENDIENTE,
-            'total' => fake()->randomFloat(2, 10, 500),
-            'items' => [['nombre' => 'Item', 'cantidad' => 1, 'precio_unitario' => 10]],
+            'codigo' => strtoupper(Str::random(10)),
+            'cliente_nombre' => fake()->name(),
+            'canal' => 'mostrador',
+            'sucursal' => '—',
+            'estado' => 'pendiente',
+            'total' => 10.5,
+            'items' => [['product_id' => 1, 'cantidad' => 1, 'precio_unitario' => 10.5]],
             'notas' => null,
             'created_by' => null,
         ];
     }
 
-    public function activo(): static
+    public function configure(): static
     {
-        return $this->state(fn () => [
-            'estado' => fake()->randomElement([
-                Pedido::ESTADO_PENDIENTE,
-                Pedido::ESTADO_EN_PREPARACION,
-                Pedido::ESTADO_LISTO,
-            ]),
+        return $this->afterCreating(function (Pedido $pedido): void {
+            $nombre = Sucursal::query()->whereKey($pedido->sucursal_id)->value('nombre');
+            if ($nombre && $pedido->sucursal === '—') {
+                $pedido->update(['sucursal' => $nombre]);
+            }
+        });
+    }
+
+    public function forSucursal(Sucursal $sucursal): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sucursal_id' => $sucursal->id,
+            'sucursal' => $sucursal->nombre,
+        ]);
+    }
+
+    public function estado(string $estado): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'estado' => $estado,
+        ]);
+    }
+
+    public function byUser(?User $user): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'created_by' => $user?->id,
         ]);
     }
 }

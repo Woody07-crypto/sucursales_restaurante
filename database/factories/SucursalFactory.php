@@ -15,18 +15,14 @@ class SucursalFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre' => fake()->company().' — '.fake()->city(),
+            'nombre' => 'Sucursal '.fake()->unique()->lexify('????'),
             'direccion' => fake()->streetAddress(),
             'ciudad' => fake()->city(),
             'telefono' => fake()->numerify('########'),
-            'email' => fake()->optional()->companyEmail(),
-            'horario' => fake()->optional()->randomElement(['Lun-Dom 10:00-23:00', 'Mar-Dom 12:00-00:00']),
+            'email' => fake()->unique()->safeEmail(),
+            'horario' => '09:00–22:00',
             'activa' => true,
+            'manager_id' => null,
         ];
-    }
-
-    public function inactiva(): static
-    {
-        return $this->state(fn () => ['activa' => false]);
     }
 }

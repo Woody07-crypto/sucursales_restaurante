@@ -6,12 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * La columna `role` ya existe (migración 2026_04_08_000004). Solo añadimos sucursal_id.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            $table->string('role', 40)->default('cajero')->after('password');
             $table->foreignId('sucursal_id')->nullable()->after('role')->constrained('sucursales')->nullOnDelete();
         });
     }
@@ -20,7 +18,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['sucursal_id']);
-            $table->dropColumn('sucursal_id');
+            $table->dropColumn(['role', 'sucursal_id']);
         });
     }
 };

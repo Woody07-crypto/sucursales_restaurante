@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('sucursal_id')->nullable()->constrained('sucursales')->nullOnDelete();
             $table->string('codigo')->unique();
             $table->string('cliente_nombre')->nullable();
             $table->string('canal');
             $table->string('sucursal');
-            $table->string('estado')->default('pendiente');
-            $table->decimal('total', 10, 2)->default(0);
+            $table->string('estado', 40)->default('pendiente');
+            $table->decimal('total', 12, 2)->default(0);
             $table->json('items');
             $table->text('notas')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

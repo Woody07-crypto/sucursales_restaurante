@@ -19,10 +19,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    public const ROLE_GERENTE_GENERAL = 'gerente_general';
-
-    public const ROLE_GERENTE_SUCURSAL = 'gerente_sucursal';
-
     protected function casts(): array
     {
         return [
@@ -36,26 +32,13 @@ class User extends Authenticatable
         return $this->belongsTo(Sucursal::class);
     }
 
-    public function isGerenteGeneral(): bool
+    public function isGerenteGlobal(): bool
     {
-        return $this->role === self::ROLE_GERENTE_GENERAL;
+        return $this->role === 'gerente_global';
     }
 
     public function isGerenteSucursal(): bool
     {
-        return $this->role === self::ROLE_GERENTE_SUCURSAL;
-    }
-
-    public function canAccessSucursal(Sucursal $sucursal): bool
-    {
-        if ($this->isGerenteGeneral()) {
-            return true;
-        }
-
-        if ($this->isGerenteSucursal() && $this->sucursal_id !== null) {
-            return (int) $this->sucursal_id === (int) $sucursal->id;
-        }
-
-        return false;
+        return $this->role === 'gerente_sucursal';
     }
 }

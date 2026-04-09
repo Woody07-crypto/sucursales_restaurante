@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\SucursalFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sucursal extends Model
 {
-    /** @use HasFactory<SucursalFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'sucursales';
@@ -39,19 +37,18 @@ class Sucursal extends Model
         return $this->belongsTo(User::class, 'manager_id');
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
     public function pedidos(): HasMany
     {
         return $this->hasMany(Pedido::class);
     }
 
-    public function hasPedidosActivos(): bool
+    public function activePedidos(): HasMany
     {
-        return Pedido::query()
-            ->where(function ($q) {
-                $q->where('sucursal_id', $this->id)
-                    ->orWhere('sucursal', $this->nombre);
-            })
-            ->whereIn('estado', Pedido::ESTADOS_ACTIVOS)
-            ->exists();
+        return $this->pedidos()->whereNotIn('estado', ['entregado', 'cancelado']);
     }
 }
