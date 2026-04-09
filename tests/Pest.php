@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +16,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -44,7 +45,12 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function apiBearer(User $user): array
 {
-    // ..
+    $plain = $user->createToken('pest')->plainTextToken;
+
+    return [
+        'Authorization' => 'Bearer '.$plain,
+        'Accept' => 'application/json',
+    ];
 }
