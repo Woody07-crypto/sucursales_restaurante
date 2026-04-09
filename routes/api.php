@@ -1,32 +1,34 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogoController;
+use App\Http\Controllers\Api\PedidosController;
+use App\Http\Controllers\Api\SucursalesController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API — tres flujos (ramas de trabajo: flow/sucursales, flow/catalogo, flow/pedidos)
+| API — tres flujos (ramas: flow/sucursales, flow/catalogo, flow/pedidos)
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('v1')->group(function () {
-    Route::prefix('sucursales')->group(function () {
-        Route::get('/health', fn () => response()->json([
-            'flow' => 'sucursales',
-            'message' => 'Placeholder: implementar en rama flow/sucursales',
-        ]));
-    });
+    Route::post('/auth/login', [AuthController::class, 'login']);
 
-    Route::prefix('catalogo')->group(function () {
-        Route::get('/health', fn () => response()->json([
-            'flow' => 'catalogo',
-            'message' => 'Placeholder: implementar en rama flow/catalogo',
-        ]));
-    });
+    Route::get('/sucursales/health', [SucursalesController::class, 'health']);
+    Route::get('/catalogo/health', [CatalogoController::class, 'health']);
+    Route::get('/pedidos/health', [PedidosController::class, 'health']);
 
-    Route::prefix('pedidos')->group(function () {
-        Route::get('/health', fn () => response()->json([
-            'flow' => 'pedidos',
-            'message' => 'Placeholder: implementar en rama flow/pedidos',
-        ]));
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+        Route::get('/sucursales', [SucursalesController::class, 'index']);
+        Route::get('/sucursales/{id}', [SucursalesController::class, 'show'])->whereNumber('id');
+        Route::post('/sucursales', [SucursalesController::class, 'store']);
+        Route::put('/sucursales/{id}', [SucursalesController::class, 'update'])->whereNumber('id');
+        Route::delete('/sucursales/{id}', [SucursalesController::class, 'destroy'])->whereNumber('id');
+
+        Route::get('/catalogo/menu', [CatalogoController::class, 'menu']);
+        Route::post('/pedidos', [PedidosController::class, 'store']);
     });
 });
