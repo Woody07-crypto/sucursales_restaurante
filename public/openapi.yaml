@@ -15,6 +15,8 @@ tags:
     description: Flujo `flow/catalogo` — menú, categorías, precios, disponibilidad.
   - name: Pedidos
     description: Flujo `flow/pedidos` — órdenes, estados, pagos.
+  - name: Stock
+    description: Flujograma 3 — gestión de stock e ingredientes al registrar pedidos (movimientos, alertas, órdenes de compra, bloqueo de menú).
 
 paths:
   /api/v1/sucursales/health:
@@ -55,6 +57,129 @@ paths:
                   message:
                     type: string
 
+  /api/v1/orders:
+    post:
+      tags: [Stock, Pedidos]
+      summary: Registrar pedido (dispara Flujograma 3 — stock)
+      description: |
+        Equivalente funcional a `POST /api/v1/pedidos`. Si el ítem coincide con `producto_ingrediente` (ej. "Pizza"),
+        descuenta stock, registra `inventario_movimientos`, evalúa umbral y puede generar alertas y órdenes de compra.
+      operationId: ordersStore
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoCreateRequest'
+      responses:
+        '201':
+          description: Pedido creado — stock OK o alerta crítica (ver cuerpo `stock`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoCreadoConStock'
+        '207':
+          description: Pedido creado con alerta warning de stock (Multi-Status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoCreadoConStock'
+        '401':
+          description: No autenticado
+        '422':
+          description: Error de validación
+
+  /api/v1/orders/purchase:
+    post:
+      tags: [Stock]
+      summary: Orden de compra sugerida
+      operationId: ordersPurchaseSuggested
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sucursal, ingrediente_id, cantidad_sugerida]
+              properties:
+                sucursal: { type: string, example: Santa Tecla }
+                ingrediente_id: { type: integer, example: 1 }
+                cantidad_sugerida: { type: number, example: 25 }
+                pedido_id: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Orden sugerida registrada
+        '401':
+          description: No autenticado
+
+  /api/v1/purchase-orders:
+    post:
+      tags: [Stock]
+      summary: Orden de compra urgente
+      operationId: purchaseOrdersUrgent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sucursal, ingrediente_id, cantidad_sugerida]
+              properties:
+                sucursal: { type: string }
+                ingrediente_id: { type: integer }
+                cantidad_sugerida: { type: number }
+                pedido_id: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Orden urgente registrada
+        '403':
+          description: Solo gerente o admin
+
+  /api/v1/inventory/branch/{sucursal}:
+    get:
+      tags: [Stock]
+      summary: Stock por sucursal (suma lógica por ítem)
+      operationId: inventoryByBranch
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: sucursal
+          required: true
+          schema: { type: string }
+          description: Nombre de sucursal (URL-encoded si lleva espacios)
+      responses:
+        '200':
+          description: Listado de stock por ingrediente en la sucursal
+        '401':
+          description: No autenticado
+
+  /api/v1/analytics/stock-alerts:
+    get:
+      tags: [Stock]
+      summary: Alertas de stock
+      operationId: analyticsStockAlerts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: sucursal
+          schema: { type: string }
+        - in: query
+          name: nivel
+          schema: { type: string, enum: [warning, critical] }
+      responses:
+        '200':
+          description: Paginado de alertas
+        '401':
+          description: No autenticado
+
   /api/v1/pedidos/health:
     get:
       tags: [Pedidos]
@@ -77,6 +202,8 @@ paths:
   /api/v1/pedidos:
     get:
       tags: [Pedidos]
+      security:
+        - bearerAuth: []
       summary: Listar pedidos
       operationId: pedidosIndex
       parameters:
@@ -102,8 +229,10 @@ paths:
                     items:
                       $ref: '#/components/schemas/Pedido'
     post:
-      tags: [Pedidos]
-      summary: Crear pedido
+      tags: [Pedidos, Stock]
+      security:
+        - bearerAuth: []
+      summary: Crear pedido (dispara Flujograma 3 si hay receta)
       operationId: pedidosStore
       requestBody:
         required: true
@@ -113,17 +242,25 @@ paths:
               $ref: '#/components/schemas/PedidoCreateRequest'
       responses:
         '201':
-          description: Pedido creado
+          description: Pedido creado — stock OK o crítico (ver `stock`)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pedido'
+                $ref: '#/components/schemas/PedidoCreadoConStock'
+        '207':
+          description: Pedido creado con alerta warning de stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoCreadoConStock'
         '422':
           description: Error de validación
 
   /api/v1/pedidos/{id}:
     get:
       tags: [Pedidos]
+      security:
+        - bearerAuth: []
       summary: Obtener detalle de pedido
       operationId: pedidosShow
       parameters:
@@ -142,6 +279,8 @@ paths:
           description: Pedido no encontrado
     delete:
       tags: [Pedidos]
+      security:
+        - bearerAuth: []
       summary: Eliminar pedido
       operationId: pedidosDestroy
       parameters:
@@ -160,6 +299,8 @@ paths:
   /api/v1/pedidos/{id}/estado:
     patch:
       tags: [Pedidos]
+      security:
+        - bearerAuth: []
       summary: Cambiar estado del pedido
       operationId: pedidosUpdateEstado
       parameters:
@@ -191,7 +332,45 @@ paths:
           description: Pedido no encontrado
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: Token devuelto por `POST /api/v1/auth/login`
+
   schemas:
+    StockPayload:
+      type: object
+      properties:
+        estado:
+          type: string
+          enum: [ok, warning, critical]
+        alertas:
+          type: array
+          items:
+            type: object
+        ordenes_compra:
+          type: array
+          items:
+            type: object
+        items_menu_bloqueados:
+          type: array
+          items:
+            type: object
+        notificaciones:
+          type: array
+          items:
+            type: object
+
+    PedidoCreadoConStock:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Pedido'
+        stock:
+          $ref: '#/components/schemas/StockPayload'
+
     Pedido:
       type: object
       properties:

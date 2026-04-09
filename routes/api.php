@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\InventoryController;
+use App\Http\Controllers\Api\V1\OrdenCompraController;
 use App\Http\Controllers\Api\V1\PedidoController;
+use App\Http\Controllers\Api\V1\StockAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,10 +36,19 @@ Route::prefix('v1')->group(function () {
         ]));
     });
 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('orders/purchase', [OrdenCompraController::class, 'suggested']);
+        Route::post('orders', [PedidoController::class, 'store']);
+        Route::post('purchase-orders', [OrdenCompraController::class, 'urgent']);
+        Route::get('inventory/branch/{sucursal}', [InventoryController::class, 'byBranch'])
+            ->where('sucursal', '[^/]+');
+        Route::get('analytics/stock-alerts', [StockAnalyticsController::class, 'index']);
+    });
+
     Route::prefix('pedidos')->group(function () {
         Route::get('/health', fn () => response()->json([
             'flow' => 'pedidos',
-            'message' => 'Flujo pedidos operativo',
+            'message' => 'Flujo pedidos operativo (incluye integración stock — Flujograma 3)',
         ]));
 
         Route::middleware('auth:sanctum')->group(function () {

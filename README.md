@@ -4,7 +4,19 @@
 
 API y documentación para trabajo en equipo (5 personas). Tras clonar el repo, copia `.env.example` a `.env`, ejecuta `composer setup` o los pasos habituales de Laravel.
 
-- **Documentación interactiva (Swagger UI):** [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (con `php artisan serve`).
+### Levantar el servidor local (Windows)
+
+1. Prueba lo habitual: `php artisan serve` → abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
+2. Si ves **Failed to listen** en todos los puertos, usa el servidor embebido de PHP (misma app, otro puerto):
+   - `composer run serve-native` **o** doble clic en `serve-native.bat`
+   - Abre [http://127.0.0.1:8765/docs/api](http://127.0.0.1:8765/docs/api) para Swagger.
+
+### Probar endpoints para la documentación
+
+- **Postman (o Insomnia):** sirve para demostrar en vivo y para pegar **ejemplos reales** de request/response en el informe.
+- **Swagger/OpenAPI** (`public/openapi.yaml` y `/docs/api`): es lo que el proyecto pide como **documentación interactiva**; Postman **no lo reemplaza**, pero puedes usarlo junto con capturas o export de colección.
+
+- **Documentación interactiva (Swagger UI):** [http://127.0.0.1:8765/docs/api](http://127.0.0.1:8765/docs/api) con `composer run serve-native`, o [http://127.0.0.1:8000/docs/api](http://127.0.0.1:8000/docs/api) si `php artisan serve` funciona.
 - **Especificación OpenAPI:** `public/openapi.yaml`.
 - **Matriz de pruebas:** [docs/MATRIZ_PRUEBAS.md](docs/MATRIZ_PRUEBAS.md).
 
@@ -15,7 +27,7 @@ API y documentación para trabajo en equipo (5 personas). Tras clonar el repo, c
 | `main` | Integración estable |
 | `flow/sucursales` | Endpoints de sucursales (`/api/v1/sucursales/*`) |
 | `flow/catalogo` | Endpoints de catálogo/menú (`/api/v1/catalogo/*`) |
-| `flow/pedidos` | Endpoints de pedidos (`/api/v1/pedidos/*`) |
+| `flow/pedidos` | Pedidos + **Flujograma 3** (stock): `POST /api/v1/orders`, `GET /api/v1/inventory/branch/{sucursal}`, `GET /api/v1/analytics/stock-alerts`, compras |
 | `qa/matriz-pruebas` | Evolución de la matriz y casos de QA |
 | `docs/api-interactiva` | Cambios en OpenAPI y la vista `/docs/api` |
 

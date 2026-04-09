@@ -39,6 +39,18 @@ Documento vivo: actualizar en la rama `qa/matriz-pruebas` y fusionar a `main` cu
 | PED-008 | Eliminar pedido entregado | DELETE | `/api/v1/pedidos/{id}` | Pedido con estado `entregado` | 409 | Regla de negocio |
 | PED-009 | Eliminar pedido no entregado | DELETE | `/api/v1/pedidos/{id}` | Pedido estado `pendiente` | 204 | Eliminación exitosa |
 
+## Flujograma 3 — Stock e ingredientes (`flow/pedidos` + rutas stock)
+
+| ID | Caso | Método | Ruta | Entrada | Esperado HTTP | Notas |
+|----|------|--------|------|---------|---------------|-------|
+| STK-001 | Pedido dispara stock OK | POST | `/api/v1/orders` o `/api/v1/pedidos` | `items` con producto en receta (ej. Pizza) | 201, `stock.estado=ok` | Tras `php artisan db:seed` |
+| STK-002 | Warning bajo umbral | POST | `/api/v1/orders` | Stock que queda `< umbral` y `> 0` | 207, alerta `warning` | Ver tests `StockFlujo3Test` |
+| STK-003 | Crítico stock 0 | POST | `/api/v1/orders` | Agota ingrediente | 201, `stock.estado=critical`, bloqueo menú | Orden compra `urgente` |
+| STK-004 | Inventario por sucursal | GET | `/api/v1/inventory/branch/{sucursal}` | — | 200 lista | URL-encode espacios en nombre |
+| STK-005 | Alertas | GET | `/api/v1/analytics/stock-alerts` | Query `sucursal`, `nivel` | 200 paginado | |
+| STK-006 | Orden compra sugerida | POST | `/api/v1/orders/purchase` | JSON sucursal + ingrediente + cantidad | 201 | Manual / integración |
+| STK-007 | Orden compra urgente | POST | `/api/v1/purchase-orders` | Mismo cuerpo | 201 | Rol gerente o admin |
+
 ## Regresión cruzada
 
 | ID | Caso | Cómo |

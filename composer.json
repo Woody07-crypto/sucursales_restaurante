@@ -52,6 +52,9 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "serve-native": [
+            "@php -S 127.0.0.1:8765 -t public public/server.php"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

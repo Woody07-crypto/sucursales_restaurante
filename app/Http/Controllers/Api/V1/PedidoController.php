@@ -7,6 +7,7 @@ use App\Http\Requests\StorePedidoRequest;
 use App\Http\Requests\UpdatePedidoEstadoRequest;
 use App\Http\Resources\PedidoResource;
 use App\Models\Pedido;
+use App\Services\StockPedidoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -62,9 +63,12 @@ class PedidoController extends Controller
             'created_by' => $request->user()?->id,
         ]);
 
+        $stock = app(StockPedidoService::class)->procesarTrasPedido($pedido);
+
         return (new PedidoResource($pedido))
+            ->additional(['stock' => $stock['payload']])
             ->response()
-            ->setStatusCode(201);
+            ->setStatusCode($stock['http_status']);
     }
 
     public function show(Pedido $pedido): PedidoResource
