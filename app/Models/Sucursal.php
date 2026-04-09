@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
+use Database\Factories\SucursalFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sucursal extends Model
 {
-    /** @use HasFactory<\Database\Factories\SucursalFactory> */
-    use HasFactory;
+    /** @use HasFactory<SucursalFactory> */
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'sucursales';
 
     protected $fillable = [
         'nombre',
@@ -19,6 +24,7 @@ class Sucursal extends Model
         'email',
         'horario',
         'activa',
+        'manager_id',
     ];
 
     protected function casts(): array
@@ -28,8 +34,20 @@ class Sucursal extends Model
         ];
     }
 
-    public function products(): HasMany
+    public function manager(): BelongsTo
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class);
+    }
+
+    public function hasPedidosActivos(): bool
+    {
+        return $this->pedidos()
+            ->whereIn('estado', Pedido::ESTADOS_ACTIVOS)
+            ->exists();
     }
 }

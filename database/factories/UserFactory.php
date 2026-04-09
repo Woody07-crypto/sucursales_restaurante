@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Sucursal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,27 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => User::ROLE_GERENTE_GENERAL,
+            'sucursal_id' => null,
         ];
+    }
+
+    public function gerenteGeneral(): static
+    {
+        return $this->state(fn () => [
+            'role' => User::ROLE_GERENTE_GENERAL,
+            'sucursal_id' => null,
+        ]);
+    }
+
+    public function gerenteSucursal(?int $sucursalId = null): static
+    {
+        return $this->state(function () use ($sucursalId) {
+            return [
+                'role' => User::ROLE_GERENTE_SUCURSAL,
+                'sucursal_id' => $sucursalId ?? Sucursal::factory()->create()->id,
+            ];
+        });
     }
 
     /**
