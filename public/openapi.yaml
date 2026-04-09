@@ -9,6 +9,8 @@ servers:
   - url: /
     description: Servidor local (php artisan serve)
 tags:
+  - name: Auth
+    description: Autenticación (Laravel Sanctum).
   - name: Sucursales
     description: Flujo `flow/sucursales` — ubicaciones, horarios, datos de sucursal.
   - name: Catálogo
@@ -17,6 +19,83 @@ tags:
     description: Flujo `flow/pedidos` — órdenes, estados, pagos.
 
 paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      description: |
+        Autentica al usuario y devuelve un token Bearer para consumir endpoints protegidos.
+        En Swagger UI: copia el `token` y úsalo en **Authorize** como `Bearer <token>`.
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_credentials:
+                  value: { message: "Credenciales inválidas" }
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Obtener usuario autenticado
+      operationId: authMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar sesión
+      description: Invalida el token actual (según implementación de Sanctum).
+      operationId: authLogout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                ok:
+                  value: { message: "Logout exitoso" }
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api/v1/sucursales/health:
     get:
       tags: [Sucursales]
@@ -79,6 +158,8 @@ paths:
       tags: [Pedidos]
       summary: Listar pedidos
       operationId: pedidosIndex
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: estado
@@ -105,6 +186,8 @@ paths:
       tags: [Pedidos]
       summary: Crear pedido
       operationId: pedidosStore
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -126,6 +209,8 @@ paths:
       tags: [Pedidos]
       summary: Obtener detalle de pedido
       operationId: pedidosShow
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -144,6 +229,8 @@ paths:
       tags: [Pedidos]
       summary: Eliminar pedido
       operationId: pedidosDestroy
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -162,6 +249,8 @@ paths:
       tags: [Pedidos]
       summary: Cambiar estado del pedido
       operationId: pedidosUpdateEstado
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -191,7 +280,53 @@ paths:
           description: Pedido no encontrado
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
   schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string, example: "Error" }
+
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string, example: "OK" }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: "admin@demo.com" }
+        password: { type: string, example: "password" }
+        device_name:
+          type: string
+          description: Identificador del dispositivo (opcional).
+          example: "swagger-ui"
+
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string, example: "1|9uX...tu_token..." }
+        token_type: { type: string, example: "Bearer" }
+        user:
+          $ref: '#/components/schemas/User'
+
+    MeResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Administrador" }
+        email: { type: string, format: email, example: "admin@demo.com" }
     Pedido:
       type: object
       properties:
