@@ -46,7 +46,11 @@ class Sucursal extends Model
 
     public function hasPedidosActivos(): bool
     {
-        return $this->pedidos()
+        return Pedido::query()
+            ->where(function ($q) {
+                $q->where('sucursal_id', $this->id)
+                    ->orWhere('sucursal', $this->nombre);
+            })
             ->whereIn('estado', Pedido::ESTADOS_ACTIVOS)
             ->exists();
     }

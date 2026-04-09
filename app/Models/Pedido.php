@@ -32,20 +32,40 @@ class Pedido extends Model
     ];
 
     protected $fillable = [
+        'codigo',
+        'cliente_nombre',
+        'canal',
+        'sucursal',
         'sucursal_id',
         'estado',
         'total',
+        'items',
+        'notas',
+        'created_by',
     ];
 
     protected function casts(): array
     {
         return [
+            'items' => 'array',
             'total' => 'decimal:2',
         ];
     }
 
-    public function sucursal(): BelongsTo
+    protected static function booted(): void
     {
-        return $this->belongsTo(Sucursal::class);
+        static::creating(function (Pedido $pedido): void {
+            if ($pedido->sucursal_id && blank($pedido->sucursal)) {
+                $nombre = Sucursal::query()->whereKey($pedido->sucursal_id)->value('nombre');
+                if ($nombre) {
+                    $pedido->sucursal = $nombre;
+                }
+            }
+        });
+    }
+
+    public function sucursalModel(): BelongsTo
+    {
+        return $this->belongsTo(Sucursal::class, 'sucursal_id');
     }
 }

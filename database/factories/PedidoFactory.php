@@ -16,9 +16,16 @@ class PedidoFactory extends Factory
     public function definition(): array
     {
         return [
+            'codigo' => 'PED-FCT-'.fake()->unique()->numerify('######'),
+            'cliente_nombre' => fake()->optional()->name(),
+            'canal' => fake()->randomElement(['salon', 'delivery', 'take-away']),
+            'sucursal' => '',
             'sucursal_id' => Sucursal::factory(),
             'estado' => Pedido::ESTADO_PENDIENTE,
             'total' => fake()->randomFloat(2, 10, 500),
+            'items' => [['nombre' => 'Item', 'cantidad' => 1, 'precio_unitario' => 10]],
+            'notas' => null,
+            'created_by' => null,
         ];
     }
 

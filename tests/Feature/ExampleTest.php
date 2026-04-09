@@ -1,7 +1,7 @@
 <?php
 
-test('the application returns a successful response', function () {
-    $response = $this->get('/');
+test('api health endpoint responds successfully', function () {
+    $response = $this->get('/api/v1/pedidos/health');
 
     $response->assertStatus(200);
 });
