@@ -2,28 +2,75 @@ openapi: 3.1.0
 info:
   title: API Sucursales Restaurante
   description: |
-    Especificación viva de los tres flujos de endpoints. La UI interactiva está en `/docs/api`.
-    Ramas sugeridas: `flow/sucursales`, `flow/catalogo`, `flow/pedidos`.
-  version: 0.1.0
+    Especificación alineada con `routes/api.php` (prefijo `/api`). UI interactiva en `/docs/api`.
+    Ramas de trabajo: `flow/sucursales`, `flow/catalogo`, `flow/pedidos`.
+  version: 1.0.0
 servers:
   - url: /
     description: Servidor local (php artisan serve)
 tags:
+  - name: Auth
   - name: Sucursales
-    description: Flujo `flow/sucursales` — ubicaciones, horarios, datos de sucursal.
   - name: Catálogo
-    description: Flujo `flow/catalogo` — menú, categorías, precios, disponibilidad.
   - name: Pedidos
+<<<<<<< HEAD
     description: Flujo `flow/pedidos` — órdenes, estados, pagos.
   - name: Stock
     description: Flujograma 3 — gestión de stock e ingredientes al registrar pedidos (movimientos, alertas, órdenes de compra, bloqueo de menú).
+=======
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+security:
+  - bearerAuth: []
+>>>>>>> 2bbf1cf86a78e197d1b4092d398275c2cb99ee6c
 
 paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión (token Sanctum)
+      operationId: authLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token emitido
+        '422':
+          description: Validación o credenciales inválidas
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar sesión (revoca token actual)
+      operationId: authLogout
+      responses:
+        '200':
+          description: OK
+
   /api/v1/sucursales/health:
     get:
       tags: [Sucursales]
       summary: Health del flujo sucursales
       operationId: sucursalesHealth
+      security: []
       responses:
         '200':
           description: OK
@@ -38,11 +85,91 @@ paths:
                   message:
                     type: string
 
+  /api/v1/sucursales:
+    get:
+      tags: [Sucursales]
+      summary: Listar sucursales (GG todas; GS la asignada)
+      operationId: sucursalesIndex
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permiso
+    post:
+      tags: [Sucursales]
+      summary: Crear sucursal (solo gerente global)
+      operationId: sucursalesStore
+      responses:
+        '201':
+          description: Creada
+        '409':
+          description: Nombre duplicado
+        '403':
+          description: Prohibido
+
+  /api/v1/sucursales/{id}:
+    get:
+      tags: [Sucursales]
+      summary: Detalle con KPIs
+      operationId: sucursalesShow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: No encontrada
+        '403':
+          description: Sin permiso
+    put:
+      tags: [Sucursales]
+      summary: Actualizar sucursal (auditoría en `audit_logs`)
+      operationId: sucursalesUpdate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: No encontrada
+        '403':
+          description: Sin permiso
+    delete:
+      tags: [Sucursales]
+      summary: Baja lógica (soft delete); 409 si hay pedidos activos
+      operationId: sucursalesDestroy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminada (soft)
+        '204':
+          description: Alternativa sin cuerpo (no usada en esta implementación)
+        '409':
+          description: Pedidos activos
+        '404':
+          description: No encontrada
+
   /api/v1/catalogo/health:
     get:
       tags: [Catálogo]
       summary: Health del flujo catálogo
       operationId: catalogoHealth
+      security: []
       responses:
         '200':
           description: OK
@@ -57,6 +184,7 @@ paths:
                   message:
                     type: string
 
+<<<<<<< HEAD
   /api/v1/orders:
     post:
       tags: [Stock, Pedidos]
@@ -179,12 +307,27 @@ paths:
           description: Paginado de alertas
         '401':
           description: No autenticado
+=======
+  /api/v1/catalogo/menu:
+    get:
+      tags: [Catálogo]
+      summary: Menú — productos activos
+      operationId: catalogoMenu
+      responses:
+        '200':
+          description: Listado
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permiso
+>>>>>>> 2bbf1cf86a78e197d1b4092d398275c2cb99ee6c
 
   /api/v1/pedidos/health:
     get:
       tags: [Pedidos]
       summary: Health del flujo pedidos
       operationId: pedidosHealth
+      security: []
       responses:
         '200':
           description: OK
@@ -200,6 +343,7 @@ paths:
                     type: string
 
   /api/v1/pedidos:
+<<<<<<< HEAD
     get:
       tags: [Pedidos]
       security:
@@ -233,15 +377,15 @@ paths:
       security:
         - bearerAuth: []
       summary: Crear pedido (dispara Flujograma 3 si hay receta)
+=======
+    post:
+      tags: [Pedidos]
+      summary: Crear pedido (tabla `pedidos`)
+>>>>>>> 2bbf1cf86a78e197d1b4092d398275c2cb99ee6c
       operationId: pedidosStore
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PedidoCreateRequest'
       responses:
         '201':
+<<<<<<< HEAD
           description: Pedido creado — stock OK o crítico (ver `stock`)
           content:
             application/json:
@@ -412,3 +556,12 @@ components:
               cantidad: { type: integer, minimum: 1, example: 2 }
               precio_unitario: { type: number, minimum: 0, example: 8.75 }
         notas: { type: string, example: Sin cebolla }
+=======
+          description: Creado
+        '422':
+          description: Validación
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permiso
+>>>>>>> 2bbf1cf86a78e197d1b4092d398275c2cb99ee6c

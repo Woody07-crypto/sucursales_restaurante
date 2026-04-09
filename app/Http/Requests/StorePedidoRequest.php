@@ -14,14 +14,18 @@ class StorePedidoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cliente_nombre' => ['nullable', 'string', 'max:120'],
-            'canal' => ['required', 'string', 'in:salon,delivery,take-away'],
-            'sucursal' => ['required', 'string', 'max:120'],
+            'canal' => ['required', 'string', 'max:80'],
+            'sucursal' => ['required', 'string', 'max:255'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.nombre' => ['required', 'string', 'max:120'],
+            // Compatibilidad:
+            // - Contrato de la matriz: items[] con product_id + cantidad
+            // - Ejemplo del PDF: items[] con nombre + cantidad + precio_unitario
+            'items.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'items.*.nombre' => ['nullable', 'string', 'max:255'],
+            'items.*.precio_unitario' => ['nullable', 'numeric', 'min:0'],
             'items.*.cantidad' => ['required', 'integer', 'min:1'],
-            'items.*.precio_unitario' => ['required', 'numeric', 'min:0'],
-            'notas' => ['nullable', 'string', 'max:500'],
+            'cliente_nombre' => ['nullable', 'string', 'max:255'],
+            'notas' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
