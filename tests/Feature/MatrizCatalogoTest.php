@@ -23,10 +23,10 @@ test('MAT-CAT-002 menú productos activos por rol', function () {
     Sanctum::actingAs($gg);
     $this->getJson('/api/v1/catalogo/menu')
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 
     $gs = User::factory()->gerenteSucursal($a->id)->create();
     Sanctum::actingAs($gs);
-    $names = collect($this->getJson('/api/v1/catalogo/menu')->json())->pluck('nombre');
+    $names = collect($this->getJson('/api/v1/catalogo/menu')->json('data'))->pluck('nombre');
     expect($names)->toHaveCount(1)->and($names->first())->toBe('Plato A');
 });

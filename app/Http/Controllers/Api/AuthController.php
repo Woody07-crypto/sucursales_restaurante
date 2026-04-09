@@ -28,23 +28,43 @@ class AuthController extends Controller
 
         $token = $user->createToken('api')->plainTextToken;
 
-        return response()->json([
+        return $this->respond([
             'token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-                'sucursal_id' => $user->sucursal_id,
-            ],
-        ]);
+            'user' => $this->userPayload($user),
+        ], 'Login exitoso');
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        return $this->respond($this->userPayload($user), 'Usuario autenticado');
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if (! $user instanceof User) {
+            abort(401);
+        }
 
-        return response()->json(['message' => 'Sesión cerrada']);
+        $user->currentAccessToken()?->delete();
+
+        return $this->respond(null, 'Sesión cerrada');
+    }
+
+    private function userPayload(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'sucursal_id' => $user->sucursal_id,
+        ];
     }
 }

@@ -18,7 +18,7 @@ test('MAT-SUC-002 listar sucursales gerente global', function () {
 
     $this->getJson('/api/v1/sucursales', apiBearer($gg))
         ->assertOk()
-        ->assertJsonCount(2);
+        ->assertJsonCount(2, 'data');
 });
 
 test('MAT-SUC-003 listar sucursales gerente sucursal solo asignada', function () {
@@ -28,7 +28,7 @@ test('MAT-SUC-003 listar sucursales gerente sucursal solo asignada', function ()
 
     $json = $this->getJson('/api/v1/sucursales', apiBearer($gs))
         ->assertOk()
-        ->json();
+        ->json('data');
 
     expect($json)->toHaveCount(1)
         ->and($json[0]['id'])->toBe($a->id);
@@ -44,9 +44,9 @@ test('MAT-SUC-004 detalle con KPIs', function () {
 
     $this->getJson("/api/v1/sucursales/{$s->id}", apiBearer($gg))
         ->assertOk()
-        ->assertJsonPath('kpis.pedidos_activos', 1)
-        ->assertJsonPath('kpis.pedidos_totales', 2)
-        ->assertJsonPath('kpis.productos_activos', 2);
+        ->assertJsonPath('data.kpis.pedidos_activos', 1)
+        ->assertJsonPath('data.kpis.pedidos_totales', 2)
+        ->assertJsonPath('data.kpis.productos_activos', 2);
 });
 
 test('MAT-SUC-005 listar sin token responde 401', function () {
@@ -73,7 +73,7 @@ test('MAT-SUC-007 crear sucursal 201 gerente global', function () {
         'activa' => true,
     ], apiBearer($gg))
         ->assertCreated()
-        ->assertJsonPath('nombre', 'Sucursal Centro');
+        ->assertJsonPath('data.nombre', 'Sucursal Centro');
 });
 
 test('MAT-SUC-008 crear sucursal validación 422', function () {
@@ -119,7 +119,7 @@ test('MAT-SUC-011 actualizar sucursal 200', function () {
         'ciudad' => 'Nueva Ciudad',
     ], apiBearer($gs))
         ->assertOk()
-        ->assertJsonPath('ciudad', 'Nueva Ciudad');
+        ->assertJsonPath('data.ciudad', 'Nueva Ciudad');
 });
 
 test('MAT-SUC-012 actualizar sucursal ajena GS 404', function () {
@@ -159,7 +159,7 @@ test('MAT-SUC-015 eliminar sucursal soft delete y auditoría', function () {
 
     $this->deleteJson("/api/v1/sucursales/{$s->id}", [], apiBearer($gg))
         ->assertOk()
-        ->assertJsonPath('id', $s->id);
+        ->assertJsonPath('data.id', $s->id);
 
     $this->assertSoftDeleted('sucursales', ['id' => $s->id]);
     expect(AuditLog::query()->where('action', 'sucursal.soft_deleted')->count())->toBe(1);
